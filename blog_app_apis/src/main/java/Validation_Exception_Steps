@@ -1,0 +1,130 @@
+/////////////  tracker -> video 27 one good practice///////////////////////////
+
+
+Validation Steps :
+
+1. import validation dependency in pom.xml
+2. in DTO add Validation by MEANS OF ANNOTATION.
+3. add @valid in the functions of the controller
+
+
+Exceptions : 
+
+1. throw a custom exception in serviceimpl class.
+2. make custom exception class in exceptions package.  eg) resourceNotFoundException
+  2a. Can make ApiResponse.java as template to return field as key & error as value in postman.
+3. make GlobalExceptionHandler  class in exceptions package with @RestControllerAdvice annotation
+4. make a function to handle exception in  GlobalExceptionHandler  class like made in this project.
+  4a. Use ApiResponse as template to handle errors in errorhandler functions in GlobalExceptionHandler class.
+
+ #Never update Primary Key in Update(Putmapping)
+ 
+ #When doing mapping(OnetoMany etc. type) then mapped by has the column which is used in connected class
+ 
+ #Give Mapped By Condition in the class(parent) from where data from child clss has to fetched.
+  eg) User is parent i.e. when user is fetched his all posts are also fetched thus post class is child.
+  
+ #FetchType.LAZY means that Parent class doesnt give data from child class unless asked for
+  i.e. User Api will not give Post data unless asked for
+  
+ #FEtchType.Early means that Parent class will automatically give child class data
+ i.e. User Api will fetch Post data even if not asked for it
+ 
+ #@JoinColumn(name = "category_id") renames the column{{primary key column}} of the parent class with 
+                passed name as parameter 
+                
+ #Security ::- WEB BROWSER AUTHENTICATION : spring gives security from security dependency in pom.xml then add username and password in
+  application.properties  which is a form based approach.
+  
+  We have to change form login approach in basic approach To do this we have made a SecurityConfig file.
+  but this approach helps in putting Username & password for each APIs in postman in authorization header of postman.
+  
+  BUT GIVIING USERID & PASSOWRD IN EACH API IS CUMBERSOME TASK for this we use JWT Token for one time authorization.
+  
+  
+ #Security-2 ::- DATABSE AUTHENTICATION - now instead of keeping username and passord in application.properties we keep it in database.
+                 make a entity role & map it with user as done
+                 make a security package  then in it a class CustomUserDetailService which implemnets UserDetailsService
+                 make findbyemail method in userrepo
+                 implement User entity with UserDetails and and unimplemnted methods set them true & do changes like done.
+                 made a passowrd encoding fn in SecurityConfig and added http (http.csrf()... etc. )methods just see.
+                 in the SpringBootApplication class implement CommnadLineRunner to get a print fn & this will help us to get Encrypted password 
+                 then in workbench do change in Role table like we putted 1 as ADMIN and assigned role 1 to useer alakh pandey
+                 then encrypted alakh pandey passowrd i.e. physics in CommnadLineRunner and got in console
+                 then putted encrypted got passowrd in user table alakh pandey record for password
+                 then in postman acess api by putting alakh pandey's email as userid and "physics"  as passowrd i.e. before encrypted password.
+            ( for each user first get encrypted password of his from console , then put encrypted password in table of user...
+             (  Then from postman enter normal email and unencrypted normal password)
+   
+                
+# JWT token = header + payload +signature    
+
+1.MAke  Jwt files in security package which are made along  with exceptions
+ 1a Make a ApiSecurityException a custom exception and Handle in GlobalExceptionHandler.java file
+2.MAke SecurityConfig.java file as in Config package   
+3. make AuthController for login APIs.
+ 3a (set login api as public in SecurityConfig file) thatIS .antMatchers("/api/auth/login").permitAll() //to make this url public    
+4. then in postman pass username and password in LOGIN API
+5. copy token and paste it in the header section of every url with prefix "Bearer ..token.." 
+
+6. make any api public using ant matchers in securityConfil file and also making apis public by there method i.e. GET,POT etc.
+  $$6a. YOu make any api specifically login by admin or NOrmal user by using @PreAuthorize("hasRole('ADMIN')") in api in Controller class. (eg) in UserController
+  
+  
+#REGISTERING A NEW USER AS ADMIN OR NORMAL THEN ENCRYPTING PASSWORD -----
+
+1 registerNewUser() make a method in UserService
+  1 a. then make it's implementation mthod
+     1 a a. for this making role make a RoleRepo class in Repository this Repo will help in doing Role related CRUD oprns.
+
+2 to make roles(like normal,admin etc. for 1st time as we created then maually) then changes in SpringBootApplication file
+
+3 then make registernewUser api in AUTHCONTROLLER  
+
+4 hit postman   
+  
+  
+  
+  
+  
+  
+  ###SWAGGER
+  
+  1. get spring fox boot starter dependency of swagger
+  2.Enable webMVC in securityConfig file.(annotation)
+  3.In http methods of SecurityConfig file add this .antMatchers("/v3/api-docs").permitAll()
+         this url gives all urls as json so making it public.
+         
+  4. add more swagger urls to be public in SecurityConfig file. as done in .antmatchers()
+  
+  5. to customize swagger ui make a COnfig file of swagger in config/package
+  
+  6. Setting up JWT token use in swagger UI--
+    6a. Do changes in SwaggerConfig.java file (atlast pickup as updated config file)
+       \\ creating anonymous list/array   -->   new ClassType[] {value}    (eg)  new String[] { "valueat0" }      \\
+       
+       
+ ### DEployment
+ 
+ 1. set up new application.properties for dev and prod
+ 2. set profile active in original application.properties
+ (( SET server.port = 5000 in original application.properties as using AWS Beanstack))
+ 
+ 3. create aws accnt add RDS service do configuration and allow your port to be accessible from anywhere like in video.
+         this creates a cloud database
+ 4. FOR DEPLOYMENT CREATE JAR FILE OF PROJECT --
+   4 a. blog_app_apis /run as / maven build   
+   
+ 5. after getting a jar to deploy it, on AWS take Elastic Beanstalk.
+  5 a. create application
+  5 b. give application name ,platform = java 
+  5 c. upload your code = select our jar file
+  5 d. configure more -> db setting/mysql version according to dialect chosen 
+                         enter mysql username and password created at time of AWS RDS Connection
+                         save
+  5 e. create app
+  5 f. as beanstalk sruns on port 5050 so in application.properties set server.port=5000 if not done earlier then repeat steps 5a to 5e again. 
+  5 g. NOw open the BEanStalk generated for our jar file 
+  5 h. copy paste the beanstalk url in broser append with /swagger-ui/index.html
+        you will get swagger ui running on aws server
+  5 i. test the apis in swagger ui like done on local server       
